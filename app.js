@@ -51,11 +51,22 @@ let inputbox = blessed.textbox({
   }
 });
 
+const useCommands = (text) => {
+  box.pushLine(text);
+}
+
 screen.append(box);
 screen.append(inputbox);
 inputbox.focus();
 inputbox.key(['escape', 'C-c'], () => (process.exit(0)));
 screen.render();
+
+inputbox.key('enter', () => {
+  useCommands(inputbox.getValue());
+  inputbox.clearValue();
+  inputbox.focus();
+  screen.render();
+});
 
 bot.on('ready', () => {
   box.pushLine(`Connected as ${bot.user.tag} (userId: ${bot.user.id})`);
