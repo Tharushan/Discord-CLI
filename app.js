@@ -3,8 +3,12 @@
 const Discord = require('discord.js');
 const bot     = new Discord.Client({'autoReconnect': true, 'max_message_cache': 0});
 const blessed = require('blessed');
+const _       = require('lodash');
 const config  = require('./config/config');
 const token = config.token;
+
+let lastCommand = [];
+let currentIndex = -1;
 
 bot.login(token);
 
@@ -62,11 +66,29 @@ inputbox.key(['escape', 'C-c'], () => (process.exit(0)));
 screen.render();
 
 inputbox.key('enter', () => {
-  useCommands(inputbox.getValue());
+  const commandUsed = inputbox.getValue();
+  useCommands(commandUsed);
+  lastCommand.push(commandUsed);
+  currentIndex = _.size(lastCommand);
   inputbox.clearValue();
   inputbox.focus();
   screen.render();
 });
+
+inputbox.on('keypress', function(ch, key) {
+  if (key && key.name === 'up' && currentIndex >= 0) {
+    inputbox.clearValue();
+    inputbox.setValue(lastCommand[--currentIndex]);
+    inputbox.focus();
+    screen.render();
+  } else if (key && key.name === 'down' && currentIndex + 1 <= _.size(lastCommand)) {
+    inputbox.clearValue();
+    inputbox.setValue(lastCommand[++currentIndex]);
+    inputbox.focus();
+    screen.render();
+  }
+});
+
 
 bot.on('ready', () => {
   box.pushLine(`Connected as ${bot.user.tag} (userId: ${bot.user.id})`);
