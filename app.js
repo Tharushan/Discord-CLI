@@ -4,6 +4,9 @@ const Discord = require('discord.js');
 const bot     = new Discord.Client({'autoReconnect': true, 'max_message_cache': 0});
 const blessed = require('blessed');
 const _       = require('lodash');
+const moment  = require('moment');
+const chalk   = require('chalk');
+
 const config  = require('./config/config');
 const token = config.token;
 
@@ -98,6 +101,24 @@ bot.on('ready', () => {
 
 bot.on('disconnect', e => {
   box.pushLine('Disconnected');
+  box.setScrollPerc(100);
+  screen.render();
+});
+
+bot.on('message', message => {
+  let isDirectMessage = false;
+  if (message.author.bot && message.channel.type !== 'dm') return;
+  let msg = `[${moment(message.createdTimestamp).format('DD/MM/YYYY HH:mm:ss')}] `;
+  if (message.guild)
+    msg += `${message.guild.name}(${message.guild.id}) - ${message.channel.name}(${message.channel.id})`;
+  if (message.channel.type === 'dm') {
+    msg += '(DM)';
+    isDirectMessage = true;
+  }
+  msg += ` - [${message.author.username}]${message.author.tag}(${message.author.id}) :`;
+  if (isDirectMessage) msg = chalk.redBright(msg);
+  msg += ` \n ${message.cleanContent}`;
+  box.pushLine(msg);
   box.setScrollPerc(100);
   screen.render();
 });
